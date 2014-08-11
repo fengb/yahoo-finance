@@ -13,16 +13,23 @@ If using bundler:
 
 ### Getting latest quotes for a set of symbols
 
-Pass an array of valid symbols (stock names, indexes, exchange rates) and a list of fields you want:
+Pass a valid symbol (stock names, indexes, exchange rates) and a list of fields you want:
 
 ```ruby
-data = YahooFinance.quotes(["BVSP", "NATU3.SA", "USDJPY=X"], [:ask, :bid, :last_trade_date])
+data = YahooFinance.quotes("SPY", [:ask, :bid, :last_trade_date])
 ```
 
 Data is now an array of results. You now have accessor methods to retrieve the data, with the return results being strings:
 
 ```ruby
-puts data[0].symbol + " value is: " + data[0].ask 
+puts data.symbol + " value is: " + data.ask
+```
+
+An array of symbols may also be used:
+
+```ruby
+data = YahooFinance.quotes(["SPY", "NATU3.SA", "USDJPY=X"], [:ask, :bid, :last_trade_date])
+puts data[0].symbol + " value is: " + data[0].ask
 ```
 
 Passing `raw: false` will return numerical values
