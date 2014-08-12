@@ -1,3 +1,5 @@
+require 'yahoo_finance/default_options'
+
 require 'open-uri'
 require 'ostruct'
 require 'json'
@@ -119,11 +121,18 @@ end
   # retrieve the quote data (an OpenStruct per quote)
   # the options param can be used to specify the following attributes:
   # :raw - if true, each column will be converted (to numbers, dates, etc)
-  def self.quotes(symbols_array, columns_array = [:symbol, :last_trade_price, :last_trade_date, :change, :previous_close], options = { })
-    options[:raw] ||= true
+  def self.quotes(symbols_array, columns = nil, options = { })
+    if columns.respond_to?(:to_hash)
+      options = columns
+    elsif !columns.nil?
+      options[:columns] = columns
+    end
+
+    default_options.quotes.merge_into!(options)
+
     ret = []
     symbols_array.each_slice(SYMBOLS_PER_REQUEST) do |symbols|
-      read_quotes(symbols.join("+"), columns_array).map do |row|
+      read_quotes(symbols.join("+"), options[:columns]).map do |row|
         ret << OpenStruct.new(row.to_hash)
       end
     end
@@ -131,8 +140,7 @@ end
   end
   
   def self.historical_quotes(symbol, start_date, end_date, options = {})
-    options[:raw] ||= true
-    options[:period] ||= :daily
+    default_options.historical_quotes.merge_into!(options)
     read_historical(symbol, start_date, end_date, options).map do |row|
       OpenStruct.new(row.to_hash.merge(:symbol => symbol))
     end
@@ -176,4 +184,7 @@ end
      json_result["ResultSet"]["Result"]
   end
 
- end
+  def self.default_options
+    @default_options ||= DefaultOptions.all
+  end
+end
