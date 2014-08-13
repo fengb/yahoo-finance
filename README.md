@@ -125,26 +125,27 @@ The full list of fields follows:
 
 ### Getting historical quotes
 
-Here you can specify a date range and a symbol, and retrieve historical data for it. 
-The last parameter (options) can include, besides the "raw" option, a "period" option.
-The period can be specified as :daily, :monthly, :weekly or :dividends_only
+Options:
+* format - [:daily, :weekly, :monthly], default: :daily
+* start_date - default: beginning of time
+* end_date - default: today
 
 ```ruby
 data = YahooFinance.historical_quotes("AAPL") # entire historical data
+data = YahooFinance.historical_quotes("AAPL", :start_date => Date.today - 10) # 10 days worth of data
+data = YahooFinance.historical_quotes("AAPL", :period => :monthly })
 ```
 
-or
+### Getting dividends
+
+Options:
+* start_date
+* end_date
 
 ```ruby
-data = YahooFinance.historical_quotes("AAPL", { start_date: Time::now-(24*60*60*10), end_date: Time::now }) # 10 days worth of data
+YahooFinance.dividends("AAPL") # entire dividends history
+YahooFinance.dividends("AAPL", :start_date => Date.today - 10*365) # 10 years of dividends
 ```
-
-or
-
-``` ruby
-data = YahooFinance.historical_quotes("AAPL", { raw: false, period: :monthly })
-```
-
 
 Enjoy! :-)
 

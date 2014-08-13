@@ -111,7 +111,9 @@ end
     :daily => "d",
     :weekly => "w",
     :monthly => "m",
-    :dividends_only => "v"
+    :dividends => "v",
+    # Deprecated: "dividends" reads better
+    :dividends_only => "v",
   }
 
   SYMBOLS_PER_REQUEST = 50
@@ -145,8 +147,25 @@ end
 
     options[:raw] ||= true
     options[:period] ||= :daily
+    # Deprecated: moving into separate API call: YahooFinance.dividends
+    if [:dividends, :dividends_only].include?(options[:period])
+      # Deprecated: "dividend_pay_date" is wrong. This is actually "ex_date".
+      options[:columns] = [:dividend_pay_date, :dividend_yield]
+    else
+      options[:columns] = [:trade_date, :open, :high, :low, :close, :volume, :adjusted_close]
+    end
+
     read_historical(symbol, options).map do |row|
       OpenStruct.new(row.to_hash.merge(:symbol => symbol))
+    end
+  end
+
+  def self.dividends(symbol, options = {})
+    options[:period] = :dividends
+    options[:columns] = [:date, :yield]
+
+    read_historical(symbol, options).map do |row|
+      OpenStruct.new(row.to_hash)
     end
   end
 
@@ -185,13 +204,7 @@ end
 
      url = "http://ichart.finance.yahoo.com/table.csv?#{params.map{|k, v| "#{k}=#{v}"}.join('&')}"
      conn = open(url)
-     cols =
-       if options[:period] == :dividends_only
-         [:dividend_pay_date, :dividend_yield]
-       else
-         [:trade_date, :open, :high, :low, :close, :volume, :adjusted_close]
-       end
-     result = CSV.parse(conn.read, :headers => cols) #:first_row, :header_converters => :symbol)
+     result = CSV.parse(conn.read, :headers => options[:columns])
      result.delete(0)  # drop returned header
      result
   end
