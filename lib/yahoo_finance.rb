@@ -119,15 +119,21 @@ end
   # retrieve the quote data (an OpenStruct per quote)
   # the options param can be used to specify the following attributes:
   # :raw - if true, each column will be converted (to numbers, dates, etc)
-  def self.quotes(symbols_array, columns_array = [:symbol, :last_trade_price, :last_trade_date, :change, :previous_close], options = { })
+  def self.quotes(symbols, columns_array = [:symbol, :last_trade_price, :last_trade_date, :change, :previous_close], options = { })
     options[:raw] ||= true
-    ret = []
-    symbols_array.each_slice(SYMBOLS_PER_REQUEST) do |symbols|
-      read_quotes(symbols.join("+"), columns_array).map do |row|
-        ret << OpenStruct.new(row.to_hash)
+
+    if symbols.respond_to?(:to_ary)
+      ret = []
+      symbols.each_slice(SYMBOLS_PER_REQUEST) do |symbols|
+        read_quotes(symbols.join("+"), columns_array).each do |row|
+          ret << OpenStruct.new(row.to_hash)
+        end
       end
+      ret
+    else
+      row = read_quotes(symbols.to_s, columns_array).first
+      OpenStruct.new(row.to_hash)
     end
-    ret
   end
 
   def self.historical_quotes(symbol, start_date=nil, end_date=nil, options = {})
